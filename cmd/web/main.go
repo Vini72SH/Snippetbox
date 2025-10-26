@@ -10,6 +10,12 @@ func main() {
 	// Start web server
 	mux := http.NewServeMux()
 
+	// Create a file server with the files in ./ui/static/
+	fileServer := http.FileServer(http.Dir("./ui/static/"))
+
+	// Defines the GET method to obtain static files at runtime
+	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
+
 	// Handlers and Routes
 	mux.HandleFunc("GET /{$}", home)
 	mux.HandleFunc("GET /snippet/view/{id}", snippetView)
