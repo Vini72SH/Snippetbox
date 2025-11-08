@@ -21,9 +21,11 @@ type SnippetModel struct {
 func (m *SnippetModel) Get(id int) (Snippet, error) {
 	var s Snippet
 
+	// SQL Statement
 	stmt := `SELECT id, title, content, created, expires FROM snippets
 	WHERE expires > UTC_TIMESTAMP() AND id = ?`
 
+	// Get the snippet with the specified id
 	row := m.DB.QueryRow(stmt, id)
 
 	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
@@ -39,14 +41,17 @@ func (m *SnippetModel) Get(id int) (Snippet, error) {
 }
 
 func (m *SnippetModel) Insert(title string, content string, expires int) (int, error) {
+	// SQL Statement
 	stmt := `INSERT INTO snippets (title, content, created, expires)
 	         VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))`
 
+	// Execution of INSERTION in the Database
 	result, err := m.DB.Exec(stmt, title, content, expires)
 	if err != nil {
 		return 0, err
 	}
 
+	// Get the ID of the inserted snippet
 	id, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
@@ -58,14 +63,18 @@ func (m *SnippetModel) Insert(title string, content string, expires int) (int, e
 func (m *SnippetModel) Latest() ([]Snippet, error) {
 	var snippets []Snippet
 
+	// SQL Statement
 	stmt := `SELECT id, title, content, created, expires FROM snippets
 	WHERE expires > UTC_TIMESTAMP() ORDER BY id DESC LIMIT 10`
 
+	// Get the last 10 snippets inserted
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
 
+	// Defer rows.Close() to ensure the sql.Rows resultset is
+	// always properly closed before the Latest() method returns.
 	defer rows.Close()
 
 	for rows.Next() {
